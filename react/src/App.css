@@ -62,3 +62,180 @@
 .left-btn {
   margin-right: 5px;
 }
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Roboto:wght@400;500&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Main container */
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Make the app container fill the entire viewport height */
+  font-family: 'Roboto', sans-serif; /* Body font */
+  color: #333;
+}
+
+/* Header Styles */
+.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: white; /* Orange */
+  padding: 20px;
+  color: #FFB30E;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  color: #FFB30E;
+}
+
+.logo-img {
+  width: 50px; /* Adjust size of logo */
+  margin-right: 10px; /* Space between logo and text */
+  color: #D1620D;
+}
+
+.title {
+  font-size: 36px;
+  color: #D1620D;
+  margin: 0; /* Remove any margin around the title */
+}
+
+.tabs {
+  display: flex;
+  gap: 12px;
+}
+
+.tabs a {
+  font-weight: 500;
+  color: #282c34;
+}
+
+/* Main Content */
+.main-content {
+  background-color: #D1620D;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  flex-grow: 1;
+  padding-bottom: 50px;
+}
+
+.main-content h2 {
+  margin-left: 50px;
+  margin-top: 75px;
+  font-size: 60px;
+  color: #fff; /* Red */
+}
+
+.main-content h3 {
+  margin-left: 50px;
+  font-size: 24px;
+  color: #fffba0;
+}
+
+.food-images {
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  gap: 35px;
+}
+
+button {
+  background-color: #feff9c;
+  color: black;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.food-img {
+  width: 450px;
+  height: 400px;
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+}
+
+.recipes {
+  background-color: white;
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  flex-grow: 1;
+  padding: 40px;
+}
+
+.food{
+  color:black;
+  background-color: #feff9c;
+  border: thin solid #fff740;
+  text-align: center;
+  margin: 10px 0px 0px 0px;
+  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 18px;
+  width: 250px;
+  height: 250px;
+  box-shadow: 5px 5px 7px rgba(33,33,33,.7);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.foods {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.chatGPT {
+  background-color:#282c34;
+  min-height: 500px;
+  align-items: center;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chatGPT h1 {
+  color:#fff;
+}
+
+.chatGPT input {
+  width: 800px;
+  height: 50px;
+  text-align:left;
+  font-size: 18px;
+}
+
+.response-box{
+  width: 1000px;
+  height: 300px;
+  background-color: white;
+  margin: auto;
+}
+
+/* Add some extra styling for responsiveness */
+@media (max-width: 768px) {
+  .food-images {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .food-img {
+    width: 80%;
+    height: auto;
+  }
+}

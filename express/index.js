@@ -4,6 +4,12 @@ const nodemailer = require('nodemailer');
 const axios = require("axios");
 const mysql = require('mysql2');
 const cors = require('cors');
+const { OpenAI } = require('openai');
+
+const openai = new OpenAI({
+  apiKey: "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",
+});
+
 
 const app = express();
 app.use(bodyParser.json());
@@ -15,38 +21,11 @@ app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
 
-route.get('/simple-get', (req, res) => {
-  res.send("here");
-});
-
-route.get('/dynamic-get/:text', (req, res) => {
-  res.send(req.params.text);
-});
-
-route.get('/pokemon/:name', async (req, res) => {
-  const pokemonName = req.params.name.toLowerCase();
-
-  try {
-    const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`);
-    
-    const pokemonData = {
-      name: response.data.name,
-      id: response.data.id,
-      height: response.data.height,
-      weight: response.data.weight,
-    };
-
-    res.json(pokemonData);
-  } catch (error) {
-    res.status(404).send({ error: "Pokémon not found!" });
-  }
-});
-
 const db = mysql.createConnection({
   host: '127.0.0.1',
   user: 'root',
   password: 'password',
-  database: 'devx',
+  database: 'food',
   port: 3306
 });
 
@@ -58,33 +37,61 @@ db.connect((err) => {
   }
 });
 
-route.post('/add-user', (req, res) => {
-  const { email, password } = req.body;
+app.get('/foods', (req,res) => {
+  const sql = "SELECT * FROM foods";
+  db.query(sql, (err, data) => {
+    if(err) return res.json(err);
+    return res.json(data);
+  })
+});
 
-  const query = 'INSERT INTO users (user_email, user_password) VALUES (?, ?)';
+route.post('/delete-food', (req,res) => {
+  const { id } = req.body;
+
+  const query = 'DELETE FROM foods WHERE food_id = ?';
+
+  db.query(query, [id], (err,result) => {
+      if(err){
+          return res.status(500).send('Error deleting recipe.');
+      }
+      res.status(200).send('Recipe deleted successfully.');
+  })
+})
+
+route.post('/add-food', (req, res) => {
+  const { food, ingredients } = req.body;
+
+  const query = 'INSERT INTO foods (food_name, food_ingredients) VALUES (?, ?)';
   
-  db.query(query, [email, password], (err, result) => {
+  db.query(query, [food, ingredients], (err, result) => {
     if (err) {
-      return res.status(500).send('Error adding user to the database.');
+      return res.status(500).send('Error adding recipe to the database.');
     }
-    res.status(200).send('User added successfully.');
+    res.status(200).send('Recipe added successfully.');
   });
 });
 
-route.post('/verify-user', (req, res) => {
-  const { email, password } = req.body;
+route.get('/get-recipe', async (req, res) => {
+  try {
+    const { ingredients } = req.query;
 
-  const query = 'SELECT * FROM users WHERE user_email = ? AND user_password = ?';
-  
-  db.query(query, [email, password], (err, results) => {
-    if (err) {
-      return res.status(500).send('Error verifying user credentials.');
-    }
+    const prompt = `Give me recipes with these ingredients: ${ingredients}`;
 
-    if (results.length > 0) {
-      res.status(200).send('User verified successfully.');
-    } else {
-      res.status(401).send('Invalid email or password.');
-    }
-  });
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      max_tokens: 2048,
+      temperature: 0.7,
+    });
+    res.send(response);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("An error occurred while fetching the recipe.");
+  }
 });
