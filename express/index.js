@@ -7,7 +7,7 @@ const cors = require('cors');
 const { OpenAI } = require('openai');
 
 const openai = new OpenAI({
-  apiKey: "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",
+  apiKey: "",
 });
 
 
