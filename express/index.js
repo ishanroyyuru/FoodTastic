@@ -1,25 +1,21 @@
+require('dotenv').config();
 const express = require("express");
 const bodyParser = require('body-parser');
-const nodemailer = require('nodemailer');
-const axios = require("axios");
 const mysql = require('mysql2');
 const cors = require('cors');
 const { OpenAI } = require('openai');
 
 const openai = new OpenAI({
-  apiKey: "",
+  apiKey: process.env.OPENAI_API_KEY
 });
-
 
 const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cors());
+
 const route = express.Router();
-const port = process.env.PORT || 5001;app.use('/v1', route);
-app.listen(port, () => {    
-  console.log(`Server listening on port ${port}`);
-});
+app.use('/v1', route);
 
 const db = mysql.createConnection({
   host: '127.0.0.1',
@@ -28,70 +24,67 @@ const db = mysql.createConnection({
   database: 'food',
   port: 3306
 });
-
-db.connect((err) => {
-  if (err) {
-    console.error('Error connecting to the database:', err.message);
-  } else {
-    console.log('Connected to the MySQL database.');
-  }
+db.connect(err => {
+  if (err) console.error('DB connect error:', err.message);
+  else console.log('Connected to MySQL');
 });
 
-app.get('/foods', (req,res) => {
-  const sql = "SELECT * FROM foods";
-  db.query(sql, (err, data) => {
-    if(err) return res.json(err);
-    return res.json(data);
-  })
+app.get('/foods', (req, res) => {
+  db.query("SELECT * FROM foods", (err, data) => {
+    if (err) return res.json(err);
+    res.json(data);
+  });
 });
 
-route.post('/delete-food', (req,res) => {
+route.post('/delete-food', (req, res) => {
   const { id } = req.body;
-
-  const query = 'DELETE FROM foods WHERE food_id = ?';
-
-  db.query(query, [id], (err,result) => {
-      if(err){
-          return res.status(500).send('Error deleting recipe.');
-      }
-      res.status(200).send('Recipe deleted successfully.');
-  })
-})
+  db.query('DELETE FROM foods WHERE food_id = ?', [id], err => {
+    if (err) return res.status(500).send('Error deleting recipe.');
+    res.sendStatus(200);
+  });
+});
 
 route.post('/add-food', (req, res) => {
   const { food, ingredients } = req.body;
-
-  const query = 'INSERT INTO foods (food_name, food_ingredients) VALUES (?, ?)';
-  
-  db.query(query, [food, ingredients], (err, result) => {
-    if (err) {
-      return res.status(500).send('Error adding recipe to the database.');
+  db.query(
+    'INSERT INTO foods (food_name, food_ingredients) VALUES (?, ?)',
+    [food, ingredients],
+    err => {
+      if (err) return res.status(500).send('Error adding recipe.');
+      res.sendStatus(200);
     }
-    res.status(200).send('Recipe added successfully.');
-  });
+  );
 });
 
 route.get('/get-recipe', async (req, res) => {
   try {
     const { ingredients } = req.query;
 
-    const prompt = `Give me recipes with these ingredients: ${ingredients}`;
+    const prompt = `
+You are a helpful assistant. Given a list of ingredients, return a JSON array of 3–5 recipes.
 
-    const response = await openai.chat.completions.create({
+Each recipe must be an object with two fields:
+- "name": a string (name of the dish)
+- "ingredients": a string (list of ingredients used in the dish)
+
+❗ Only respond with valid JSON. Do not include explanations, bullet points, or numbering.
+
+Ingredients: ${ingredients}
+`.trim();
+
+    const gpt = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
+      messages: [{ role: "user", content: prompt }],
       max_tokens: 2048,
       temperature: 0.7,
     });
-    res.send(response);
 
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("An error occurred while fetching the recipe.");
+    res.send(gpt);
+  } catch (e) {
+    console.error(e);
+    res.status(500).send("Error fetching recipe.");
   }
 });
+
+const port = process.env.PORT || 5001;
+app.listen(port, () => console.log(`Server on ${port}`));
